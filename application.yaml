@@ -8,7 +8,7 @@ spec:
     namespace: argocd
   source:
     path: apps
-    repoURL: 'git@github.com:suhail-blueocean/tets.git'
+    repoURL: 'https://github.com/suhail-blueocean/tets.git'
     targetRevision: HEAD
   project: default
   # syncPolicy:
