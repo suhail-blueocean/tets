@@ -1,0 +1,1190 @@
+openapi: "3.0.3"
+info:
+  title: "UMP Integration Swagger"
+  description: "UMP APIs that enables users to access services like subscription, usage rating etc"
+  version: "1.0.0"
+servers:
+  - url: "https://api.lab.blu-ocean.net/usage-engine-auth"
+  - url: "https://api.lab.blu-ocean.net/usage-engine"
+
+paths:
+  /login:
+    post:
+      summary: "User login"
+      tags:
+        - "User"
+      description: "To login the user into the system"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              required:
+                - userName
+                - password
+              properties:
+                userName:
+                  type: "string"
+                  example: "user123"
+                password:
+                  type: "string"
+                  example: "Test@124"
+      responses:
+        "200":
+          description: "User logged in successfully"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UserLoginResponse"
+        "400":
+          description: "Invalid input"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/LoginError"
+
+  /registerCustomer:
+    post:
+      summary: "Register a new customer"
+      tags:
+        - "Customer"
+      description: "Register a new customer"
+      parameters:
+        - name: Authorization
+          in: "header"
+          description: "Bearer token for authorization"
+          required: true
+          schema:
+            type: "string"
+            example: "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJodHRwOi8vYXBpLnFhLmJsdS1vY2Vhbi5uZXQiLCJzdWIiOiJRQVRlbGNvIiwiaWF0IjoxNzI4OTk4MjYxLCJleHAiOjE3Mjg5OTkxNjEsImF1ZCI6IiIsInNjb3BlIjoidGVsY29BZG1pbiIsIm9wcnQiOiIya0Ryd3BnU2FaT0RhNDNUMU9QN1RXYlREYWQifQ.cZHIlkaKh5nzom2ODPxqOwsxPHVjHjjiRzbGnyrjJUU"
+        - name: taskid
+          in: "header"
+          description: "Unique task id for the customer registration"
+          required: false
+          schema:
+            type: "string"
+            example: "TASK_215"
+      requestBody:
+        description: "Customer registration request"
+        required: true
+        content:
+          application/json:
+            schema:
+              required:
+                - customerId
+                - firstName
+                - lastName
+                - password
+                - email
+                - city
+                - addressLine1
+                - addressLine2
+                - state
+                - country
+                - zipCode
+                - dialCode
+                - mobile
+              properties:
+                customerId:
+                  type: "string"
+                  example: "3204221"
+                firstName:
+                  type: "string"
+                  example: "Bob"
+                lastName:
+                  type: "string"
+                  example: "C"
+                password:
+                  type: "string"
+                  example: "Password!1"
+                email:
+                  type: "string"
+                  example: "bob@email.com"
+                city:
+                  type: "string"
+                  example: "SanJose"
+                addressLine1:
+                  type: "string"
+                  example: "D-5, Town club road"
+                addressLine2:
+                  type: "string"
+                  example: "Block-17"
+                state:
+                  type: "string"
+                  example: "California"
+                country:
+                  type: "string"
+                  example: "US"
+                zipcode:
+                  type: "integer"
+                  example: 607801
+                dialCode:
+                  type: "string"
+                  example: "+91"
+                mobile:
+                  type: "integer"
+                  example: 7397146215
+                attributeList:
+                  type: "array"
+                  items:
+                    allOf:
+                      - $ref: "#/components/schemas/CustomerAttributes"
+                billingProfile:
+                  type: "object"
+                  allOf:
+                    - $ref: "#/components/schemas/BillingProfile"
+                subscriptions:
+                  type: "array"
+                  items:
+                    allOf:
+                      - $ref: "#/components/schemas/SubscriptionRequest"
+      responses:
+        "200":
+          description: "Customer registered successfully"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RegisterCustomerResponse"
+        "400":
+          description: "Invalid input"
+
+  /customer/{customerId}:
+    get:
+      summary: "Get customer details"
+      description: "Get customer details"
+      tags:
+        - "Customer"
+      parameters:
+        - name: customerId
+          in: "path"
+          description: "ID of registered customer"
+          required: true
+          schema:
+            type: "string"
+            example: "3204221"
+        - name: includeSubscription
+          in: "query"
+          description: "true or false"
+          schema:
+            type: "string"
+            example: "true"
+      responses:
+        "200":
+          description: "successful operation"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CustomerResponse"
+        "400":
+          description: "Invalid ID supplied"
+        "404":
+          description: "Customer not found"
+
+  /updateCustomer/{customerId}:
+    put:
+      summary: "Update customer details"
+      description: "Update customer details"
+      tags:
+        - "Customer"
+      parameters:
+        - name: Authorization
+          in: "header"
+          description: "Bearer token for authorization"
+          required: true
+          schema:
+            type: "string"
+            example: "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJodHRwOi8vYXBpLnFhLmJsdS1vY2Vhbi5uZXQiLCJzdWIiOiJRQVRlbGNvIiwiaWF0IjoxNzI4OTk4MjYxLCJleHAiOjE3Mjg5OTkxNjEsImF1ZCI6IiIsInNjb3BlIjoidGVsY29BZG1pbiIsIm9wcnQiOiIya0Ryd3BnU2FaT0RhNDNUMU9QN1RXYlREYWQifQ.cZHIlkaKh5nzom2ODPxqOwsxPHVjHjjiRzbGnyrjJUU"
+        - name: customerId
+          in: "path"
+          description: "ID of registered customer"
+          required: true
+          schema:
+            type: "string"
+            example: "3204221"
+        - name: taskid
+          in: "header"
+          description: "Unique task id for the customer update"
+          required: false
+          schema:
+            type: "string"
+            example: "TASK_215"
+      requestBody:
+        description: "Customer details that is to be updated"
+        required: true
+        content:
+          application/json:
+            schema:
+              properties:
+                firstName:
+                  type: "string"
+                  example: "Bob"
+                lastName:
+                  type: "string"
+                  example: "C"
+                password:
+                  type: "string"
+                  example: "Password!1"
+                email:
+                  type: "string"
+                  example: "bob@email.com"
+                city:
+                  type: "string"
+                  example: "SanJose"
+                addressLine1:
+                  type: "string"
+                  example: "D-5, Town club road"
+                addressLine2:
+                  type: "string"
+                  example: "Block-17"
+                state:
+                  type: "string"
+                  example: "California"
+                country:
+                  type: "string"
+                  example: "US"
+                zipcode:
+                  type: "integer"
+                  example: 607801
+                dialCode:
+                  type: "string"
+                  example: "+91"
+                mobile:
+                  type: "integer"
+                  example: 7397146215
+                attributeList:
+                  type: "array"
+                  items:
+                    allOf:
+                      - $ref: "#/components/schemas/CustomerAttributes"
+                billingProfile:
+                  type: "object"
+                  allOf:
+                    - $ref: "#/components/schemas/BillingProfile"
+      responses:
+        "200":
+          description: "successful operation"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CustomerResponse"
+        "400":
+          description: "Invalid ID supplied"
+        "404":
+          description: "Customer not found"
+
+  /subscribe:
+    post:
+      summary: "Subscribe to an offer"
+      tags:
+        - "Subscription"
+      description: "Subscribe to an offer rating field u can either give calculateModeOnly or skipRating"
+      parameters:
+        - name: Authorization
+          in: "header"
+          description: "Bearer token for authorization"
+          required: true
+          schema:
+            type: "string"
+            example: "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJodHRwOi8vYXBpLnFhLmJsdS1vY2Vhbi5uZXQiLCJzdWIiOiJRQVRlbGNvIiwiaWF0IjoxNzI4OTk4MjYxLCJleHAiOjE3Mjg5OTkxNjEsImF1ZCI6IiIsInNjb3BlIjoidGVsY29BZG1pbiIsIm9wcnQiOiIya0Ryd3BnU2FaT0RhNDNUMU9QN1RXYlREYWQifQ.cZHIlkaKh5nzom2ODPxqOwsxPHVjHjjiRzbGnyrjJUU"
+        - name: taskid
+          in: "header"
+          description: "Unique task id for the subscription"
+          required: false
+          schema:
+            type: "string"
+            example: "TASK_215"
+      requestBody:
+        description: "Subscription request initiated by a customer. pass id  of subscribed offer for reSubscribe"
+        content:
+          application/json:
+            schema:
+              required:
+                - customerId
+                - offerCode
+                - subscriptionId
+                - validFrom
+              properties:
+                customerId:
+                  type: string
+                  example: "3204221"
+                offerCode:
+                  type: string
+                  example: "12345"
+                subscriptionId:
+                  type: string
+                  example: "1"
+                rating:
+                  type: "string"
+                  example: "calculateModeOnly"
+                attributes:
+                  type: array
+                  items:
+                    allOf:
+                      - $ref: "#/components/schemas/Attributes"
+                validFrom:
+                  type: string
+                  example: "2022-11-01T00:00:00Z"
+                validTo:
+                  type: string
+                  example: "2025-11-01T00:00:00Z"
+      responses:
+        "200":
+          description: "Subscription successful"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SubscriptionResponse"
+        "400":
+          description: "Invalid input"
+
+  /getSubscription/{subscriptionId}:
+    get:
+      summary: "Gets details of a subscription"
+      tags:
+        - "Subscription"
+      description: "Gets details of a subscription"
+      parameters:
+        - name: Authorization
+          in: "header"
+          description: "Bearer token for authorization"
+          required: true
+          schema:
+            type: "string"
+            example: "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJodHRwOi8vYXBpLnFhLmJsdS1vY2Vhbi5uZXQiLCJzdWIiOiJRQVRlbGNvIiwiaWF0IjoxNzI4OTk4MjYxLCJleHAiOjE3Mjg5OTkxNjEsImF1ZCI6IiIsInNjb3BlIjoidGVsY29BZG1pbiIsIm9wcnQiOiIya0Ryd3BnU2FaT0RhNDNUMU9QN1RXYlREYWQifQ.cZHIlkaKh5nzom2ODPxqOwsxPHVjHjjiRzbGnyrjJUU"
+        - name: subscriptionId
+          in: "path"
+          description: "ID of specific subscription"
+          required: true
+          schema:
+            type: "string"
+            example: "1"
+        - name: id
+          in: "query"
+          description: "ID of specific subscribed offer"
+          schema:
+            type: "string"
+            example: "1"
+      responses:
+        "200":
+          description: "successful operation"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/GetSubscriptionResponse"
+        "400":
+          description: "Invalid ID supplied"
+        "404":
+          description: "Subscription not found"
+
+  /balance/{balanceId}:
+    get:
+      summary: "Get balance details"
+      description: "Get balance details using either balance id or subscription id"
+      tags:
+        - "Balance"
+      parameters:
+        - name: Authorization
+          in: "header"
+          description: "Bearer token for authorization"
+          required: true
+          schema:
+            type: "string"
+            example: "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJodHRwOi8vYXBpLnFhLmJsdS1vY2Vhbi5uZXQiLCJzdWIiOiJRQVRlbGNvIiwiaWF0IjoxNzI4OTk4MjYxLCJleHAiOjE3Mjg5OTkxNjEsImF1ZCI6IiIsInNjb3BlIjoidGVsY29BZG1pbiIsIm9wcnQiOiIya0Ryd3BnU2FaT0RhNDNUMU9QN1RXYlREYWQifQ.cZHIlkaKh5nzom2ODPxqOwsxPHVjHjjiRzbGnyrjJUU"
+        - name: balanceId
+          in: "path"
+          description: "balanceId of registered customer or subscriptionId"
+          required: true
+          schema:
+            type: "string"
+            example: "3204221"
+        - name: startTime
+          in: "query"
+          description: "current time"
+          required: true
+          schema:
+            type: "string"
+            example: "2022-11-27T22:08:41Z"
+        - name: includeReservation
+          in: "query"
+          description: "Whether reservation needs to be included in the balance"
+          schema:
+            type: "string"
+            example: "true"
+        - name: subscriptionId
+          in: "query"
+          description: "Fetch based on subscriptionId"
+          schema:
+            type: "string"
+            example: "1"
+        - name: resourceId
+          in: "query"
+          description: "Fetch based on resourceId"
+          schema:
+            type: "string"
+            example: "1234"
+        - name: groupbyResource
+          in: "query"
+          description: "Whether the balances should be grouped based on resource"
+          schema:
+            type: "string"
+            example: "1234"
+        - name: mode
+          in: "query"
+          description: "Available options - summary and detail"
+          required: true
+          schema:
+            type: "string"
+            example: "summary"
+      responses:
+        "200":
+          description: "Summary mode success response"
+          content:
+            application/json:
+              schema:
+                oneOf:
+                  - $ref: "#/components/schemas/SummaryResponse"
+        "400":
+          description: "Invalid ID supplied"
+        "404":
+          description: "Balance details not found"
+
+  /balance/update:
+    post:
+      summary: "Update customer's balance"
+      tags:
+        - "Balance"
+      description: "Balance adjustment API"
+      parameters:
+        - name: Authorization
+          in: "header"
+          description: "Bearer token for authorization"
+          required: true
+          schema:
+            type: "string"
+            example: "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJodHRwOi8vYXBpLnFhLmJsdS1vY2Vhbi5uZXQiLCJzdWIiOiJRQVRlbGNvIiwiaWF0IjoxNzI4OTk4MjYxLCJleHAiOjE3Mjg5OTkxNjEsImF1ZCI6IiIsInNjb3BlIjoidGVsY29BZG1pbiIsIm9wcnQiOiIya0Ryd3BnU2FaT0RhNDNUMU9QN1RXYlREYWQifQ.cZHIlkaKh5nzom2ODPxqOwsxPHVjHjjiRzbGnyrjJUU"
+      requestBody:
+        description: "Balance adjustment parameters"
+        required: true
+        content:
+          application/json:
+            schema:
+              required:
+                - customerId
+                - subscriptionId
+                - offerCode
+                - adjustBalance
+              properties:
+                customerId:
+                  type: "string"
+                  example: "CUSTOMER_001"
+                subscriptionId:
+                  type: "string"
+                  example: "Subscribe_001"
+                  description: "Reference to the subscription for which balance needs to be updated"
+                offerCode:
+                  type: "string"
+                  example: "EVCredit"
+                  description: "Reference to the subscribed offer for which balance needs to be updated"
+                id:
+                  type: "string"
+                  example: "10000"
+                validFrom:
+                  type: "string"
+                  example: "2022-11-01T00:00:00Z"
+                validTo:
+                  type: "string"
+                  example: "2022-11-30T00:00:00Z"
+                adjustBalance:
+                  type: number
+                  example: 10
+                  description: "Balance adjustment value in number"
+      responses:
+        "200":
+          description: "Balance updated successfully"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BalanceAdjustResponse"
+        "400":
+          description: "Invalid input"
+
+  /unsubscribe:
+    post:
+      summary: "Unsubscribe from an offer"
+      tags:
+        - "Subscription"
+      description: "Unsubscribe from an offer in rating field u can either give calculateModeOnly or skipRating"
+      parameters:
+        - name: Authorization
+          in: "header"
+          description: "Bearer token for authorization"
+          required: true
+          schema:
+            type: "string"
+            example: "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJodHRwOi8vYXBpLnFhLmJsdS1vY2Vhbi5uZXQiLCJzdWIiOiJRQVRlbGNvIiwiaWF0IjoxNzI4OTk4MjYxLCJleHAiOjE3Mjg5OTkxNjEsImF1ZCI6IiIsInNjb3BlIjoidGVsY29BZG1pbiIsIm9wcnQiOiIya0Ryd3BnU2FaT0RhNDNUMU9QN1RXYlREYWQifQ.cZHIlkaKh5nzom2ODPxqOwsxPHVjHjjiRzbGnyrjJUU"
+      requestBody:
+        description: "Unsubscribe request initiated by a customer .To unsubscribe an entire subscription don't pass id and offerCode"
+        required: true
+        content:
+          application/json:
+            schema:
+              required:
+                - customerId
+                - offerCode
+                - subscriptionId
+                - id
+                - validTo
+              properties:
+                customerId:
+                  type: "string"
+                  example: "3204221"
+                offerCode:
+                  type: "string"
+                  example: "12345"
+                subscriptionId:
+                  type: "string"
+                  example: "1"
+                rating:
+                  type: "string"
+                  example: "calculateModeOnly"
+                id:
+                  type: string
+                  example: "b0080e74-34e7-11ed-b049-cef04f569bba"
+                validTo:
+                  type: "string"
+                  example: "2022-11-04T00:00:00Z"
+      responses:
+        "200":
+          description: "Unsubscription successful"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UnSubscriptionResponse"
+        "400":
+          description: "Invalid input"
+
+  /changePlan:
+    post:
+      summary: "Change plan"
+      tags:
+        - "Subscription"
+      description: "Change plan of a subscription"
+      parameters:
+        - name: Authorization
+          in: "header"
+          description: "Bearer token for authorization"
+          required: true
+          schema:
+            type: "string"
+            example: "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJodHRwOi8vYXBpLnFhLmJsdS1vY2Vhbi5uZXQiLCJzdWIiOiJRQVRlbGNvIiwiaWF0IjoxNzI4OTk4MjYxLCJleHAiOjE3Mjg5OTkxNjEsImF1ZCI6IiIsInNjb3BlIjoidGVsY29BZG1pbiIsIm9wcnQiOiIya0Ryd3BnU2FaT0RhNDNUMU9QN1RXYlREYWQifQ.cZHIlkaKh5nzom2ODPxqOwsxPHVjHjjiRzbGnyrjJUU"
+      requestBody:
+        description: "ChangePlan request initiated by passing customerId, offerCode, subscriptionId and mode to change the offer"
+        content:
+          application/json:
+            schema:
+              required:
+                - customerId
+                - offerCode
+                - subscriptionId
+                - immediateMinusUsed
+                - nextBillCycle
+                - immediate
+              properties:
+                customerId:
+                  type: string
+                  example: "3204221"
+                offerCode:
+                  type: string
+                  example: "12345"
+                subscriptionId:
+                  type: string
+                  example: "1"
+                immediateMinusUsed:
+                  type: "boolean"
+                  example: true
+                nextBillCycle:
+                  type: "boolean"
+                  example: false
+                immediate:
+                  type: "boolean"
+                  example: false
+                validFrom:
+                  type: string
+                  example: "2024-11-01T00:00:00Z"
+
+      responses:
+        "200":
+          description: "ChangePlan successful"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ChangePlanResponse"
+        "400":
+          description: "Invalid input"
+
+components:
+  schemas:
+    CustomerResponse:
+      type: object
+      properties:
+        customerId:
+          type: "string"
+          example: "3204221"
+        firstName:
+          type: "string"
+          example: "Bob"
+        lastName:
+          type: "string"
+          example: "C"
+        password:
+          type: "string"
+          example: "$2a$14$VVqoYuY8VIZZwdWJMPXo0ufZShaxGhQG7PEnsX8nlogB3tJedCeZm"
+        email:
+          type: "string"
+          example: "bob@email.com"
+        city:
+          type: "string"
+          example: "SanJose"
+        addressLine1:
+          type: "string"
+          example: "D-5, Town club road"
+        addressLine2:
+          type: "string"
+          example: "Block-17"
+        state:
+          type: "string"
+          example: "California"
+        country:
+          type: "string"
+          example: "USA"
+        zipcode:
+          type: "integer"
+          example: 607801
+        dialCode:
+          type: "string"
+          example: "+91"
+        mobile:
+          type: "integer"
+          example: 7397146215
+        attributeList:
+          type: "array"
+          items:
+            allOf:
+              - $ref: "#/components/schemas/CustomerAttributes"
+        billingProfile:
+          type: "object"
+          allOf:
+            - $ref: "#/components/schemas/BillingProfile"
+
+        createdAt:
+          type: "string"
+          example: "2024-11-10T15:57:02+05:30"
+        updatedAt:
+          type: "string"
+          example: "2024-11-11T15:57:02+05:30"
+
+    RegisterCustomerResponse:
+      type: object
+      properties:
+        customerId:
+          type: "string"
+          example: "3204221"
+        firstName:
+          type: "string"
+          example: "Bob"
+        lastName:
+          type: "string"
+          example: "C"
+        password:
+          type: "string"
+          example: "$2a$14$VVqoYuY8VIZZwdWJMPXo0ufZShaxGhQG7PEnsX8nlogB3tJedCeZm"
+        email:
+          type: "string"
+          example: "bob@email.com"
+        city:
+          type: "string"
+          example: "SanJose"
+        addressLine1:
+          type: "string"
+          example: "D-5, Town club road"
+        addressLine2:
+          type: "string"
+          example: "Block-17"
+        state:
+          type: "string"
+          example: "California"
+        country:
+          type: "string"
+          example: "USA"
+        zipcode:
+          type: "integer"
+          example: 607801
+        dialCode:
+          type: "string"
+          example: "+91"
+        mobile:
+          type: "integer"
+          example: 7397146215
+        attributeList:
+          type: "array"
+          items:
+            allOf:
+              - $ref: "#/components/schemas/CustomerAttributes"
+        billingProfile:
+          type: "object"
+          allOf:
+            - $ref: "#/components/schemas/BillingProfile"
+        subscriptions:
+          type: "array"
+          items:
+            allOf:
+              - $ref: "#/components/schemas/SubscriptionRequest"
+        createdAt:
+          type: "string"
+          example: "2024-11-10T15:57:02+05:30"
+        updatedAt:
+          type: "string"
+          example: "2024-11-11T15:57:02+05:30"
+
+    CustomerAttributes:
+      type: object
+      properties:
+        name:
+          type: string
+          example: "MSISDN"
+        value:
+          type: string
+          example: "1040102225"
+
+    BillingProfile:
+      type: object
+      properties:
+        currentBill:
+          type: string
+          example: "BILL-10"
+        previousBill:
+          type: string
+          example: "BILL-9"
+        state:
+          type: string
+          example: "Active"
+        currencyCode:
+          type: string
+          example: "USD"
+        billingCycle:
+          type: integer
+          example: 1
+        bdom:
+          type: integer
+          example: 1
+
+    SubscriptionRequest:
+      type: object
+      properties:
+        customerId:
+          type: string
+          example: "3204221"
+        offerCode:
+          type: string
+          example: "12345"
+        subscriptionId:
+          type: string
+          example: "1"
+        rating:
+          type: "string"
+          example: "calculateModeOnly"
+        attributes:
+          type: array
+          items:
+            allOf:
+              - $ref: "#/components/schemas/Attributes"
+        validFrom:
+          type: string
+          example: "2024-11-15T00:00:00Z"
+        validTo:
+          type: string
+          example: "2025-03-01T00:00:00Z"
+
+    SubscriptionResponse:
+      type: object
+      properties:
+        customerId:
+          type: "string"
+          example: "3204221"
+        offerCode:
+          type: "string"
+          example: "12345"
+        subscriptionId:
+          type: "string"
+          example: "1"
+        id:
+          type: string
+          example: "b0080e74-34e7-11ed-b049-cef04f569bba"
+        resultCode:
+          type: "string"
+          example: "SUCCESS"
+        amount:
+          type: "integer"
+          example: 20
+        currencyCode:
+          type: string
+          example: "USD"
+        remainingBalance:
+          type: "integer"
+          example: 30
+        status:
+          type: string
+          example: "ACTIVE"
+        validFrom:
+          type: "string"
+          example: "2021-11-01T00:00:00Z"
+        validTo:
+          type: "string"
+          example: "2023-11-01T00:00:00Z"
+
+    UnSubscriptionResponse:
+      type: object
+      properties:
+        customerId:
+          type: string
+          example: "3204221"
+        offerCode:
+          type: string
+          example: "12345"
+        subscriptionId:
+          type: string
+          example: "1"
+        id:
+          type: string
+          example: "b0080e74-34e7-11ed-b049-cef04f569bba"
+        remainingBalance:
+          type: integer
+          example: 30
+        status:
+          type: string
+          example: "CANCEL"
+        validFrom:
+          type: string
+          example: "2021-11-01T00:00:00Z"
+        validTo:
+          type: string
+          example: "2023-11-01T00:00:00Z"
+        resultCode:
+          type: string
+          example: "SUCCESS"
+
+    Attributes:
+      type: object
+      properties:
+        name:
+          type: "string"
+          example: "InternalRoaming"
+        value:
+          type: "string"
+          example: "true"
+
+    SummaryResponse:
+      type: "object"
+      properties:
+        customerId:
+          type: "string"
+          example: "3204221"
+        resources:
+          type: "array"
+          items:
+            type: "object"
+            allOf:
+              - $ref: "#/components/schemas/BalanceResources"
+
+    BalanceResources:
+      type: "object"
+      properties:
+        offerCode:
+          type: "string"
+          example: "12345"
+        resourceName:
+          type: "string"
+          example: "EVCredit"
+        isCounter:
+          type: boolean
+          example: false
+        isAddon:
+          type: boolean
+          example: false
+        subscriptionId:
+          type: "string"
+          example: "1"
+        id:
+          type: "string"
+          example: "b0080e74-34e7-11ed-b049-cef04f569bba"
+        originalBalance:
+          type: "integer"
+          example: 30
+        consumedBalance:
+          type: "integer"
+          example: 3
+        reservedBalance:
+          type: "integer"
+          example: 5
+        remainingBalance:
+          type: "integer"
+          example: 22
+        validFrom:
+          type: "string"
+          example: "2022-11-01T22:08:41Z"
+        validto:
+          type: "string"
+          example: "2025-11-01T22:08:41Z"
+
+    GetSubscriptionResponse:
+      type: "object"
+      properties:
+        customerId:
+          type: "string"
+          example: "3204221"
+        subscriptionId:
+          type: "string"
+          example: "1"
+        status:
+          type: "string"
+          example: "ACTIVE"
+        subscribedOffers:
+          type: "array"
+          description: "List of all subscribed offers"
+          items:
+            allOf:
+              - $ref: "#/components/schemas/SubscribedOffer"
+
+    SubscribedOffer:
+      type: "object"
+      properties:
+        id:
+          type: "string"
+          example: "b0080e74-34e7-11ed-b049-cef04f569bba"
+        createdAt:
+          type: "string"
+          example: "2022-11-01T00:00:00Z"
+        offerCode:
+          type: "string"
+          example: "12345"
+        serviceCode:
+          type: "string"
+          example: "PM"
+        offerName:
+          type: "string"
+          example: "EVCredit"
+        offerDescription:
+          type: "string"
+          example: "Description about the offer"
+        validFrom:
+          type: "string"
+          example: "2022-11-01T00:00:00Z"
+        validTo:
+          type: "string"
+          example: "2025-11-01T00:00:00Z"
+        status:
+          type: "string"
+          example: "ACTIVE"
+        audit:
+          type: "array"
+          description: "Past subscription records"
+          items:
+            allOf:
+              - $ref: "#/components/schemas/Validity"
+        recurringChargeAndGrants:
+          type: "array"
+          description: "List of recurring charge and grants"
+          items:
+            type: object
+            properties:
+              validFrom:
+                type: string
+              validTo:
+                type: string
+              type:
+                type: string
+              chargeId:
+                type: integer
+          example:
+            - validFrom: "2022-11-01T00:00:00Z"
+              validTo: "2022-12-01T00:00:00Z"
+              type: "Charge"
+              chargeId: 1
+            - validFrom: "2022-11-01T00:00:00Z"
+              validTo: "2022-12-01T00:00:00Z"
+              type: "Grant"
+              chargeId: 2
+
+    Validity:
+      type: "object"
+      properties:
+        from:
+          type: "string"
+          example: "2020-11-01T00:00:00Z"
+        to:
+          type: "string"
+          example: "2027-11-01T00:00:00Z"
+
+    BalanceAdjustResponse:
+      type: "object"
+      properties:
+        customerId:
+          type: "string"
+          example: "CUSTOMER_001"
+        subscriptionId:
+          type: "string"
+          example: "Subscribe_001"
+        offerCode:
+          type: "string"
+          example: "EVCredit"
+        id:
+          type: "string"
+          example: "10000"
+        ValidFrom:
+          type: "string"
+          example: "2022-11-01T00:00:00Z"
+        ValidTo:
+          type: "string"
+          example: "2022-11-30T00:00:00Z"
+        previousBalance:
+          type: number
+          example: 20
+        currentBalance:
+          type: number
+          example: 30
+
+    ChangePlanResponse:
+      type: object
+      properties:
+        customerId:
+          type: "string"
+          example: "3204221"
+        offerCode:
+          type: "string"
+          example: "12345"
+        subscriptionId:
+          type: "string"
+          example: "1"
+        subscriptionInternalId:
+          type: string
+          example: "b0080e7434e711edb049cef04f569bba"
+        addOnOffer:
+          type: boolean
+          example: false
+        immediateMinusUsed:
+          type: "boolean"
+          example: true
+        nextBillCycle:
+          type: "boolean"
+          example: false
+        immediate:
+          type: "boolean"
+          example: false
+        validFrom:
+          type: string
+          example: "2024-11-01T00:00:00Z"
+        validTo:
+          type: string
+          example: "2028-11-01T00:00:00Z"
+        resultCode:
+          type: "string"
+          example: "SUCCESS"
+        amount:
+          type: "integer"
+          example: 20
+        currencyCode:
+          type: string
+          example: "USD"
+        remainingBalance:
+          type: "integer"
+          example: 30
+        status:
+          type: string
+          example: "ACTIVE"
+    UserLoginResponse:
+      type: object
+      properties:
+        accessToken:
+          type: "string"
+          example: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJodHRwOi8vYXBpLmRldi5ibHUtb2NlYW4ubmV0Iiwic3ViIjoiVEFUVVIwMDEyIiwiaWF0IjoxNjg2MTEzMDIwLCJleHAiOjE2ODYxMTM5MjAsImF1ZCI6Imh0dHBzOi8vYXBwLnRlc3QuYmx1LW9jZWFuLm5ldC8iLCJzY29wZSI6Im9wZXJhdG9yQWRtaW4iLCJvcHJ0IjoiZTUxZGE5YjktMjU5ZS00MjFjLThiZjYtMjJmNWJkZDIwNDA2In0._fK-HB855QOo5O3mbTZqwy_6GCmK5wAXegW43U5V76o"
+        refreshToken:
+          type: "string"
+          example: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJodHRwOi8vYXBpLmRldi5ibHUtb2NlYW4ubmV0Iiwic3ViIjoiVEFUVVIwMDEyIiwiaWF0IjoxNjg2MTEzMDIwLCJleHAiOjE3MDE5MjQyMjAsImF1ZCI6Imh0dHBzOi8vYXBwLnRlc3QuYmx1LW9jZWFuLm5ldC8iLCJzY29wZSI6Im9wZXJhdG9yQWRtaW4iLCJvcHJ0IjoiZTUxZGE5YjktMjU5ZS00MjFjLThiZjYtMjJmNWJkZDIwNDA2In0.LGGVJfw-wKvkXMAgCWO_G1M9y38iuhGDoc42Dq3eNGA"
+        userName:
+          type: "string"
+          example: "user123"
+        userId:
+          type: "string"
+          example: "100"
+        createdAt:
+          type: "string"
+          example: "2023-12-14T17:42:44.108Z"
+        expiredAt:
+          type: "string"
+          example: "2023-12-14T17:57:44.11Z"
+        loginSuccessful:
+          type: boolean
+          example: true
+        ipAddress:
+          type: "string"
+          example: "192.0.0.1"
+        operatorName:
+          type: "string"
+          example: "telcox"
+        operatorId:
+          type: "string"
+          example: "234234-234324-234234"
+        roleName:
+          type: "string"
+          example: "customer"
+        customerId:
+          type: "string"
+          example: "2154653446"
+        permissions:
+          type: object
+          properties:
+            stations:
+              type: array
+              items:
+                type: string
+              example: ["add", "list", "remove", "update"]
+            offers:
+              type: array
+              items:
+                type: string
+              example: ["add", "list", "remove", "update"]
+            subscription:
+              type: array
+              items:
+                type: string
+              example: ["subscribe", "unsubscribe"]
+    LoginError:
+      type: object
+      properties:
+        accessToken:
+          type: "string"
+          example: ""
+        refreshToken:
+          type: "string"
+          example: ""
+        userId:
+          type: "string"
+          example: "100"
+        createdDate:
+          type: "string"
+          example: "2023-12-14T17:42:44.108Z"
+        expiredAt:
+          type: "string"
+          example: "2023-12-14T17:42:44.108Z"
+        loginSuccessful:
+          type: boolean
+          example: false
+        ipAddress:
+          type: "string"
+          example: "192.0.0.1"
+        operatorId:
+          type: "string"
+          example: "234234-234324-234234"
+        permissions:
+          type: "string"
+          example: "null"
